@@ -1,6 +1,7 @@
 import express from "express"
 import connectDB from "./db/mongoose.js";
 import HttpError from "./midware/Httperror.js";
+import StudentRoute from "./routes/studentRoutes.js"
 
 const app = express();
 const port = 5000;
@@ -10,6 +11,8 @@ app.use(express.json());
 app.get("/", (req, res) => {
     res.status(200).json("Hello from Server")
 })
+
+app.use("/student",StudentRoute)
 
 //Undefine Routes
 
