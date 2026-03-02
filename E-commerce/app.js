@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors"
 import dotenv from "dotenv"
+import connectDB from "./db/db";
 
 const app = express()
 
@@ -13,3 +14,4 @@ console.log("port",process.env.PORT)
 app.get("/",(req,res)=>{
     res.status(200).json("Hello from Server....!")
 })
+
