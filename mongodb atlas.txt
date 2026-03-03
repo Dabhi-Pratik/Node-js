@@ -1,3 +1,0 @@
-monodb atlas: MlvOCPqOdstCZ6gx
-
-uri:  mongodb+srv://Pratik:MlvOCPqOdstCZ6gx@cluster0.ud3lsgu.mongodb.net/
