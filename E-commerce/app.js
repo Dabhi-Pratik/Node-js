@@ -1,9 +1,10 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import connectDB from "./db/db.js";
+import connectDB from "./config/db.js";
+import router from "./routers/productRoute.js";
 
-dotenv.config();   // Always at top
+dotenv.config({path:"./.env"});
 
 const app = express();
 
@@ -17,6 +18,8 @@ console.log("PORT:", process.env.PORT);
 app.get("/", (req, res) => {
   res.status(200).json("Hello from Server....!");
 });
+
+app.use("/product", router);
 
 const PORT = process.env.PORT || 5000;
 

@@ -1,5 +1,6 @@
 import HttpError from "../middleware/HttpError.js";
 import Product from "../model/productModel.js";
+import cloudinary from "../config/cloudinary.js";
 
 const createProduct = async (req, res, next) => {
     try {
@@ -74,7 +75,7 @@ const deleteProduct = async (req, res, next) => {
 
         res.status(200).json({ message: "Product Delete Successfully..!", product });
 
-        product.deleteOne()
+      await  product.deleteOne()
     } catch (error) {
         next(new HttpError("Invalid Product ID", 400));
     }
