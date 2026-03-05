@@ -5,10 +5,10 @@ async function connectDB(){
         await mongoose.connect(process.env.MONGO_URL)
 
         console.log("DB connected....")
-    } catch (error) {
+    } catch (error) { 
         console.log("mongoDB connection Failed: ",error.message)
         process.exit(1)
     }
 }
 
-export default connectDB;
+export default connectDB;   

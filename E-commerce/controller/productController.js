@@ -75,10 +75,57 @@ const deleteProduct = async (req, res, next) => {
 
         res.status(200).json({ message: "Product Delete Successfully..!", product });
 
-      await  product.deleteOne()
+        await product.deleteOne()
     } catch (error) {
         next(new HttpError("Invalid Product ID", 400));
     }
 }
 
-export default { createProduct, getAllProducts, getProductById,deleteProduct}
+const updateProduct = async (req, res, next) => {
+    try {
+
+        const id = req.params.id
+
+        const product = await Product.findById(id)
+
+        if (!product) {
+            return next(new HttpError("Product not found", 404))
+        }
+
+        const update = Object.keys(req.body)
+
+        const allowedUpdate = ["name", "description", "price", "category"]
+
+        const isValidUpdate = update.every((field) =>
+            allowedUpdate.includes(field)
+        )
+
+        if (!isValidUpdate) {
+            return next(new HttpError("It is not Valid Update Filed", 400))
+        }
+
+        update.forEach((field) => {
+            product[field] = req.body[field]
+        })
+
+        if (req.file) {
+            await cloudinary.uploader.destroy(product.cloudinary_id)
+
+            product.image = req.file.path
+            product.cloudinary_id = req.file.filename
+        }
+
+        await product.save()
+
+        res.status(200).json({
+            success: true,
+            message: "Product Updated Successfully",
+            product
+        })
+
+    } catch (error) {
+        next(new HttpError("Invalid Product ID", 400))
+    }
+}
+
+export default { createProduct, getAllProducts, getProductById, deleteProduct, updateProduct }
