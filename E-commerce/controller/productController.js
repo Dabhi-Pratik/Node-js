@@ -27,7 +27,7 @@ const createProduct = async (req, res, next) => {
             product: newProduct
         });
 
-    } catch (error) {
+    } catch (error) {   
         next(new HttpError(error.message, 500));
     }
 }

@@ -16,4 +16,4 @@ class HttpError extends Error {
 }
 
 // Export this class
-export default HttpError;
+export default HttpError

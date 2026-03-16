@@ -23,4 +23,4 @@ const Profile = mongoose.model("Profile",ProfileSchema)
 export default Profile
 
 // (Optional) Export model to use in routes
-// export default mongoose.model("Profile", Profile);
+// export default mongoose.model("Profile", Profile);  
