@@ -73,5 +73,77 @@ const authLogin = async (req, res, next) => {
     }
 }
 
+const logOut = async (req, res, next) => {
 
-export default { add, login, getAllUser ,authLogin}
+    try {
+
+        req.user.tokens = req.user.tokens.filter((t) => t.token != req.token)
+
+        await req.user.save()
+
+        res.status(200).json({ message: "User Log out SuccessFully...!" })
+
+    } catch (error) {
+        next(new HttpError(error.message, 500))
+    }
+}
+
+const logOutAll = async (req, res, next) => {
+    try {
+        req.user.tokens = []
+
+        req.user.save()
+
+        res.status(200).json({ message: "User LogOut from all devices SuccessFully" })
+    } catch (error) {
+        next(new HttpError(error.message, 500))
+    }
+}
+
+const update = async (req, res, next) => {
+    try {
+        const user = req.user
+
+        if (!user) {
+            return next(new HttpError("User Not Found...", 404))
+        }
+
+        const updates = Object.keys(req.body)
+
+        const allowUpdates = ["name", "password"]
+
+        const isValidUpdate = updates.every((fields) => {
+            return allowUpdates.includes(fields)
+        })
+
+        if (!isValidUpdate) {
+            return next(new HttpError("Only allowed field can be updated", 400))
+        }
+
+        updates.forEach((update) => {
+            return user[update] = req.body[update]
+        })
+
+        await user.save()
+
+        res.status(200).json({ message: "User data updated successfully", user })
+    } catch (error) {
+        next(new HttpError(error.message, 500))
+    }
+}
+
+const deleteUser = async (req, res, next) => {
+    try {
+        const id = req.user._id
+
+        console.log("id", id)
+
+        await User.findByIdAndDelete(id)
+
+        res.status(200).json({ message: "User Deleted SuccessFully" })
+    } catch (error) {
+        next(new HttpError(error.message, 500))
+    }
+}
+
+export default { add, login, getAllUser, authLogin, logOut, logOutAll, update, deleteUser }
