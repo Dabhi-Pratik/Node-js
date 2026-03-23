@@ -6,7 +6,12 @@
     <title>Home Page</title>
 </head>
 <body>
-    <h1>This is Home-Page</h1>
-    <a href="/auth/login">Go to Login Login-Page</a>
+    <h1>This is Home Page</h1>
+    <% if(user) { %>
+    <a href="/profile">Go to Profile</a>
+    <a href="/auth/logOut">Logout</a>
+<% } else { %>
+    <a href="/auth/login">Go to Login Page</a>
+<% } %>
 </body>
 </html>

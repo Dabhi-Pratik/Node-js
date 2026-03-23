@@ -36,7 +36,11 @@ passport.serializeUser((user, done) => {
 });
 
 passport.deserializeUser(async (id, done) => {
-  const validUser = await User.findOne(id)
-  done(null,validUser)
+  try {
+    const validUser = await User.findById(id);
+    done(null, validUser);
+  } catch (error) {
+    done(error, null);
+  }
 });
 export default passport;
