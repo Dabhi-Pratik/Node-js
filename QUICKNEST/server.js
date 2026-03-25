@@ -3,10 +3,13 @@ dotenv.config({ path: "./.env" });
 import express from "express";
 import connectDB from "./config/db.js";
 import HttpError from "./middleware/HttpError.js";
+import UserRouter from "./router/UserRouter.js"
 
 const app = express();
 
 app.use(express.json());
+
+app.use("/user",UserRouter)
 
 app.get("/", (req, res, next) => {
   res.status(200).json("Hello from Server....!");
