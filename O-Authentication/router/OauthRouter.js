@@ -1,6 +1,5 @@
 import express from "express";
 import passport from "passport";
-import User from "../Model/userModel.js";
 import HttpError from "../middleware/HttpError.js";
 
 const router = express.Router();
