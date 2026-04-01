@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 const userSchema = new mongoose.Schema(
   {
@@ -29,10 +30,24 @@ const userSchema = new mongoose.Schema(
       enum: ["customer", "provider", "admin", "super_admin"],
       default: "customer",
     },
+    profilePic: {
+      type: String,
+    },
+    cloudinary_id: {
+      type: String,
+    },
     isValid: {
       type: Boolean,
       default: false,
     },
+    tokens: [
+      {
+        token: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
   },
   { timestamps: true },
 );
@@ -63,6 +78,45 @@ userSchema.statics.findByCredentials = async function (email, password) {
   } catch (error) {
     throw new Error(error.message);
   }
+};
+
+userSchema.methods.generateAuthToken = async function () {
+  try {
+    const user = this;
+
+    const token = jwt.sign(
+      { _id: user._id.toString() },
+      process.env.JWT_SECRET,
+    );
+
+    user.tokens = user.tokens.concat({ token });
+
+    await user.save();
+
+    return token;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+userSchema.methods.toJSON = function () {
+  const user = this;
+
+  const userObject = user.toObject();
+
+  delete userObject.password;
+
+  delete userObject._id;
+
+  delete userObject.tokens;
+
+  delete userObject.token;
+  delete userObject.__v;
+
+  delete userObject.createdAt;
+  delete userObject.updatedAt;
+
+  return userObject;
 };
 
 const User = mongoose.model("user", userSchema);

@@ -1,5 +1,6 @@
 import User from "../model/UserModel.js";
 import HttpError from "../middleware/HttpError.js";
+import cloudinary from "../config/cloudinary.js";
 
 const add = async (req, res, next) => {
   try {
@@ -11,15 +12,22 @@ const add = async (req, res, next) => {
       password,
       phone,
       role,
+      profilePic: req.file ? req.file.path : "undefine",
+      cloudinary_id: req.file ? req.fileName : "undefine",
     };
 
     const user = new User(newUser);
 
     await user.save();
 
-    res
-      .status(201)
-      .json({ success: true, message: "User Add Successfully..!", user });
+    const token = await user.generateAuthToken();
+
+    res.status(201).json({
+      success: true,
+      message: "User Add Successfully..!",
+      user,
+      token,
+    });
   } catch (error) {
     return next(new HttpError(error.message));
   }
@@ -32,15 +40,131 @@ const login = async (req, res, next) => {
     const user = await User.findByCredentials(email, password);
 
     if (!user) {
-      next(new HttpError("Unable to Login..!"));
+      return next(new HttpError("Unable to Login..!"));
     }
+
+    const token = await user.generateAuthToken();
 
     res
       .status(200)
-      .json({ message: "Login SuccessFully....", success: true, user });
+      .json({ message: "Login SuccessFully....", success: true, user, token });
   } catch (error) {
     next(new HttpError(error.message));
   }
 };
 
-export default { add, login };
+const authLogin = async function (req, res, next) {
+  try {
+    const user = req.user;
+
+    if (!user) {
+      return next(new HttpError("Unable to Login", 401));
+    }
+
+    res.status(200).json({ success: true, user });
+  } catch (error) {
+    next(new HttpError(error.message));
+  }
+};
+
+const logOut = async (req, res, next) => {
+  try {
+    const user = req.user;
+
+    // Remove current token
+    user.tokens = user.tokens.filter((t) => {
+      return t.token !== req.token;
+    });
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Log-Out Successfully!",
+    });
+  } catch (error) {
+    next(new HttpError(error.message));
+  }
+};
+
+const logOutAll = async (req, res, next) => {
+  try {
+    req.user.tokens = [];
+
+    await req.user.save();
+
+    res
+      .status(200)
+      .json({ success: true, message: "User Log-out from device..!" });
+  } catch (error) {}
+};
+
+const allUser = async (req, res, next) => {
+  try {
+    const users = await User.find({});
+
+    if (users.length === 0) {
+      return next(new HttpError("No User Data Found....!"));
+    }
+
+    res.status(200).json({ success: true, message: "All users are", users });
+  } catch (error) {}
+};
+
+const update = async (req, res, next) => {
+  try {
+    const user = req.user;
+
+    if (!user) {
+      return next(new HttpError("user not Found..", 404));
+    }
+
+    const updates = Object.keys(req.body);
+
+    const allowedFiled = ["name", "password", "phone"];
+
+    const isValid = updates.every((fields) => allowedFiled.includes(fields));
+
+    if (!isValid) {
+      return next(new HttpError("Only Allowed fields can be Updated", 404));
+    }
+
+    updates.forEach((update) => (user[update] = req.body[update]));
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "User data updated Successfully..!",
+      user,
+    });
+  } catch (error) {
+    next(new HttpError(error.message));
+  }
+};
+
+const deleteUser = async (req, res, next) => {
+  try {
+    const user = req.user;
+
+    await User.deleteOne();
+
+    res
+      .status(200)
+      .json({ success: true, message: "User Deleted Successfully...", user });
+  } catch (error) {
+    next(new HttpError(error.message));
+  }
+};
+
+
+export default {
+  add,
+  login,
+  authLogin,
+  logOut,
+  logOutAll,
+  allUser,
+  update,
+  deleteUser,
+};
