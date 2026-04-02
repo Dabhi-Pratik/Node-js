@@ -13,7 +13,7 @@ const add = async (req, res, next) => {
       phone,
       role,
       profilePic: req.file ? req.file.path : "undefine",
-      cloudinary_id: req.file ? req.fileName : "undefine",
+      cloudinary_id: req.file ? req.filename : "undefine",
     };
 
     const user = new User(newUser);
@@ -131,6 +131,14 @@ const update = async (req, res, next) => {
 
     updates.forEach((update) => (user[update] = req.body[update]));
 
+    if (req.file) {
+      await cloudinary.uploader.destroy(user.cloudinary_id);
+
+      user.profilePic = req.file.path;
+
+      user.cloudinary_id = req.filename;
+    }
+
     await user.save();
 
     res.status(200).json({
@@ -149,6 +157,10 @@ const deleteUser = async (req, res, next) => {
 
     await User.deleteOne();
 
+    if (user.cloudinary_id) {
+      await cloudinary.uploader.destroy(user.cloudinary_id);
+    }
+
     res
       .status(200)
       .json({ success: true, message: "User Deleted Successfully...", user });
@@ -156,7 +168,6 @@ const deleteUser = async (req, res, next) => {
     next(new HttpError(error.message));
   }
 };
-
 
 export default {
   add,
