@@ -13,7 +13,7 @@ const add = async (req, res, next) => {
       phone,
       role,
       profilePic: req.file ? req.file.path : "undefine",
-      cloudinary_id: req.file ? req.filename : "undefine",
+      cloudinary_id: req.file ? req.file.filename : "undefined",
     };
 
     const user = new User(newUser);
@@ -81,6 +81,7 @@ const logOut = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: "Log-Out Successfully!",
+      user,
     });
   } catch (error) {
     next(new HttpError(error.message));
@@ -95,8 +96,10 @@ const logOutAll = async (req, res, next) => {
 
     res
       .status(200)
-      .json({ success: true, message: "User Log-out from device..!" });
-  } catch (error) {}
+      .json({ success: true, message: "User Log-out from all device..!" });
+  } catch (error) {
+    next(new HttpError(error.message));
+  }
 };
 
 const allUser = async (req, res, next) => {
@@ -108,7 +111,9 @@ const allUser = async (req, res, next) => {
     }
 
     res.status(200).json({ success: true, message: "All users are", users });
-  } catch (error) {}
+  } catch (error) {
+    next(new HttpError(error.message));
+  }
 };
 
 const update = async (req, res, next) => {

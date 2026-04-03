@@ -16,6 +16,6 @@ const checkRole =
     } catch (error) {
       next(new HttpError(error.message));
     }
-  };
+  };  
 
   export default checkRole

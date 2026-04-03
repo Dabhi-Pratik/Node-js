@@ -21,17 +21,11 @@ router.get("/login", UserController.login);
 router.get("/authLogin", auth, UserController.authLogin);
 router.post("/logOut", auth, UserController.logOut);
 router.post("/logOutAll", auth, UserController.logOutAll);
-router.post(
-  "/allUser",
-  auth,
-  checkRole("admin", "super_admin"),
-  UserController.allUser,
-);
 
 router.patch(
   "/update",
   auth,
-  validate(updateUserSchema),
+  uploads.single("profilePic"),
   UserController.update,
 );
 
