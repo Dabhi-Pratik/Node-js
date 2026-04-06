@@ -1,10 +1,7 @@
 import express from "express";
 import UserController from "../controller/UserController.js";
 import validate from "../middleware/validate.js";
-import {
-  createUserSchema,
-  updateUserSchema,
-} from "../validation/UserSchema.js";
+import UserSchema from "../validation/UserSchema.js";
 import auth from "../middleware/auth.js";
 import checkRole from "../middleware/checkRole.js";
 import uploads from "../middleware/upload.js";
@@ -13,7 +10,7 @@ const router = express.Router();
 
 router.post(
   "/add",
-  validate(createUserSchema),
+  validate(UserSchema),
   uploads.single("profilePic"),
   UserController.add,
 );
@@ -23,12 +20,12 @@ router.post("/logOut", auth, UserController.logOut);
 router.post("/logOutAll", auth, UserController.logOutAll);
 
 router.patch(
-  "/update",
+  "/update/:id",
   auth,
   uploads.single("profilePic"),
   UserController.update,
 );
 
-router.delete("/delete", auth, UserController.deleteUser);
+router.delete("/delete/:id", auth, UserController.deleteUser);
 
 export default router;
