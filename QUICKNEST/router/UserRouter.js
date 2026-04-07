@@ -20,12 +20,12 @@ router.post("/logOut", auth, UserController.logOut);
 router.post("/logOutAll", auth, UserController.logOutAll);
 
 router.patch(
-  "/update/:id",
+  "/update",
   auth,
   uploads.single("profilePic"),
   UserController.update,
 );
 
-router.delete("/delete/:id", auth, UserController.deleteUser);
+router.delete("/delete", auth, UserController.deleteUser);
 
 export default router;

@@ -41,7 +41,7 @@ async function startServer() {
       console.log(`Server running on Port ${port}`);
     });
   } catch (error) {
-    next(new HttpError(error.message));
+    throw new Error(error.message);
     process.exit(1);
   }
 }
