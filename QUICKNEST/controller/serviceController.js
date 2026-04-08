@@ -4,40 +4,42 @@ import Category from "../model/category.js";
 
 const addService = async (req, res, next) => {
   try {
-    const { name, price, duration, isActive, description } = req.body;
+    const { name, price, duration, isActive, description, category } = req.body;
 
+    // ✅ Check duplicate
     const existingService = await Service.findOne({ name });
-
-    if (!existingService) {
-      return next(new HttpError(error.message));
+    if (existingService) {
+      return next(new HttpError("Service already exists", 400));
     }
 
-    const existingCategory = await Category.findById(Category);
-
+    // ✅ Check category exists
+    const existingCategory = await Category.findById(category);
     if (!existingCategory) {
-      return next(new HttpError("Category not Existed...", 500));
+      return next(new HttpError("Category not found", 404));
     }
 
+    // ✅ Create service with category
     const newService = new Service({
       name,
       price,
       duration,
       isActive,
       description,
+      category,
     });
 
     await newService.save();
 
-    res
-      .status(201)
-      .json({
-        success: true,
-        message: "Service Created Successfully....",
-        newService,
-      });
+    console.log("Service:", newService);
+
+    res.status(201).json({
+      success: true,
+      message: "Service Created Successfully",
+      newService,
+    });
   } catch (error) {
-    next(new HttpError(error.message));
+    next(new HttpError(error.message, 500));
   }
 };
 
-export default addService
+export default addService;

@@ -1,11 +1,11 @@
 import Category from "../model/category.js";
 import HttpError from "../middleware/HttpError.js";
 
-const add = async (req, res, next) => {
+const addCategory = async (req, res, next) => {
   try {
     const { name, description } = req.body;
 
-    const newCategory = new Category.create({
+    const newCategory = new Category({
       name,
       description,
     });
@@ -32,7 +32,7 @@ const getCategory = async (req, res, next) => {
   try {
     const categories = await Category.find();
 
-    res.status(200).json({ success: true, message: "All Categories" });
+    res.status(200).json({ success: true, message: "All Categories" ,categories});
   } catch (error) {
     next(new HttpError(error.message));
   }
@@ -98,4 +98,4 @@ const deleteCategory = async (req, res, next) => {
   }
 };
 
-export default { add, update, deleteCategory, getCategory };
+export default { addCategory , update, deleteCategory, getCategory };

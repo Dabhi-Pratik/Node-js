@@ -13,8 +13,8 @@ import categorySchema from "../validation/categorySchema.js";
 
 const router = express.Router();
 
-router.post(
-  "update/:id",
+router.patch(
+  "/update/:id",
   auth,
   validate(categorySchema),
   checkRole("admin", "super_admin"),
@@ -22,7 +22,7 @@ router.post(
 );
 
 router.delete(
-  "delete/:id",
+  "/delete/:id",
   auth,
   validate(categorySchema),
   checkRole("admin", "super_admin"),
@@ -39,10 +39,10 @@ router.get(
 //category
 
 router.post(
-  "/add",
+  "/addCategory",
   auth,
-  checkRole("admin", "supper_admin"),
-  categoryController.add,
+  checkRole("admin", "super_admin"),
+  categoryController.addCategory,
 );
 
 router.patch(
@@ -53,7 +53,7 @@ router.patch(
 );
 
 router.delete(
-  "/update",
+  "/delete/:id",
   auth,
   checkRole("admin", "super_admin"),
   categoryController.deleteCategory,
@@ -66,5 +66,6 @@ router.post(
   auth,
   checkRole("admin", "super_admin"),
   addService,
-);
-export default router;
+)
+
+export default router
