@@ -1,13 +1,15 @@
 import dotenv from "dotenv";
 dotenv.config({ path: "./.env" });
+
 import express from "express";
 import connectDB from "./config/db.js";
+
 import HttpError from "./middleware/HttpError.js";
+
 import UserRouter from "./router/UserRouter.js";
 import adminRouter from "./router/adminRouter.js";
+import bookingRouter from "./router/bookingRouter.js"
 
-import Service from "./model/service.js";
-import Category from "./model/category.js";
 
 const app = express();
 
@@ -15,6 +17,7 @@ app.use(express.json());
 
 app.use("/user", UserRouter);
 app.use("/admin", adminRouter);
+app.use("/booking",bookingRouter)
 
 app.get("/", (req, res, next) => {
   res.status(200).json("Hello from Server....!");
@@ -51,28 +54,28 @@ async function startServer() {
 
 startServer();
 
-const check = async () => {
-  //using Manual
+// const check = async () => {
+//   //using Manual
 
-  // const service = await Service.findById("69d65ed232cbb03127ee8503")
+//   // const service = await Service.findById("69d65ed232cbb03127ee8503")
 
-  //   const category = await Category.findById(Service.category)
+//   //   const category = await Category.findById(Service.category)
 
-  //  console.log("Category",category)
+//   //  console.log("Category",category)
 
-  //using Populate
+//   //using Populate
 
-  // const service = await Service.findById("69d67a637c8156122afc94b5").populate("category","name")
+//   // const service = await Service.findById("69d67a637c8156122afc94b5").populate("category","name")
 
-  // console.log("Services",service)
+//   // console.log("Services",service)
 
-  //using Virtual
+//   //using Virtual
 
-  const category = await Category.findById("69d65eba32cbb03127ee84fa").populate(
-    "service","name description price -_id -category"
-  );
+//   const category = await Category.findById("69d65eba32cbb03127ee84fa").populate(
+//     "service","name description price -_id -category"
+//   );
 
-  console.log(category.service);
-};
+//   console.log(category.service);
+// };
 
-check();
+// check();
