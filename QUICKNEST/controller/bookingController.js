@@ -127,4 +127,65 @@ const getByServiceId = async (req, res, next) => {
   }
 };
 
-export default { createBooking, getAllBooking, getByServiceId };
+const getBookingById = async (req, res, next) => {
+  try {
+    let booking;
+    let userId = req.user._id;
+    let bookingId = req.params.id;
+
+    let role = req.user.role;
+
+    if (role === "admin" || role === "super_admin") {
+      booking = await Booking.find({ userId }).populate(
+        "serviceId",
+        "name price description duration -_id",
+      );
+    }
+
+    booking = await Booking.findById(bookingId);
+
+    if (
+      role === "customer" &&
+      booking.userId.toString() !== userId.toString()
+    ) {
+      return next(new HttpError("UnAuthorized Access", 403));
+    }
+
+    if (!booking) {
+      return next(new HttpError("No Booking data found", 404));
+    }
+
+    res.status(200).json({ success: true, message: "Bookings..!", booking });
+  } catch (error) {
+    next(new HttpError(error.message));
+  }
+};
+
+const bookingByUserId = async (req, res, next) => {
+  try {
+    let booking;
+
+    let userId = req.params.id || req.params._id;
+
+    booking = await Booking.find({ userId }).populate(
+      "serviceId",
+      "name price description duration -_id",
+    );
+
+    if (!booking) {
+      return next(new HttpError("No Booking Data Found", 404));
+    }
+
+    res.status(200).json({ success: true, booking });
+  } catch (error) {
+    next(new HttpError(error.message));
+  }
+};
+
+export default {
+  createBooking,
+  getAllBooking,
+  getByServiceId,
+  getBookingById,
+  bookingByUserId,
+};
