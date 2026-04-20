@@ -10,6 +10,8 @@ import UserRouter from "./router/UserRouter.js";
 import adminRouter from "./router/adminRouter.js";
 import bookingRouter from "./router/bookingRouter.js"
 
+import providerRouter from "./router/providerRouter.js"
+
 
 const app = express();
 
@@ -18,6 +20,7 @@ app.use(express.json());
 app.use("/user", UserRouter);
 app.use("/admin", adminRouter);
 app.use("/booking",bookingRouter)
+app.use("/provider",providerRouter)
 
 app.get("/", (req, res, next) => {
   res.status(200).json("Hello from Server....!");

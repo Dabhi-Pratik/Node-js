@@ -2,6 +2,9 @@ import User from "../model/UserModel.js";
 import HttpError from "../middleware/HttpError.js";
 import cloudinary from "../config/cloudinary.js";
 
+import sendMail from "../utils/sendEmail.js";
+import generateEmailTemplate from "../services/emailTemplet.js";
+
 const add = async (req, res, next) => {
   try {
     const { name, email, password, phone, role } = req.body;
@@ -17,6 +20,12 @@ const add = async (req, res, next) => {
     };
 
     const user = new User(newUser);
+
+    sendMail({
+      to: user.email,
+      subject: "Welcome to QUICKNEST",
+      html: generateEmailTemplate({ userName: user.name }),
+    });
 
     await user.save();
 

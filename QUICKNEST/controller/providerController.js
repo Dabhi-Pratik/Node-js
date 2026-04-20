@@ -3,6 +3,8 @@ import HttpError from "../middleware/HttpError.js";
 import User from "../model/UserModel.js";
 import Service from "../model/service.js";
 
+import services from "../services/emailTemplet.js";
+
 const registerAsProvider = async (req, res, next) => {
   try {
     const userId = req.user._id;
@@ -42,6 +44,8 @@ const registerAsProvider = async (req, res, next) => {
       documents,
     });
 
+    user.role="provider"
+
     await newProvider.save();
 
     res
@@ -56,4 +60,6 @@ const registerAsProvider = async (req, res, next) => {
   }
 };
 
-export default registerAsProvider;
+
+
+export default {registerAsProvider};
