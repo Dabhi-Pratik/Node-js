@@ -44,22 +44,50 @@ const registerAsProvider = async (req, res, next) => {
       documents,
     });
 
-    user.role="provider"
+    user.role = "provider";
 
     await newProvider.save();
 
+    res.status(201).json({
+      success: true,
+      message: "Provider Account registered wait for Admin approval",
+      newProvider,
+    });
+  } catch (error) {
+    next(new HttpError(error.message));
+  }
+};
+
+const getProvider = async (req, res, next) => {
+  try {
+    let { isValid } = req.query
+
+    let query = {};
+
+    if (!isValid) {
+      query.isValid = isValid === "true";
+    }
+
+    const providers = await Provider.find(query).populate([
+      { path: "userId", select: "name email password" },
+      { path: "serviceId", select: "name" },
+    ]);
+
+    if (!providers.length) {
+      return next(new HttpError("No Provider Data Found..", 404));
+    }
+
     res
-      .status(201)
+      .status(200)
       .json({
         success: true,
-        message: "Provider Account registered wait for Admin approval",
-        newProvider,
+        message: "Provider Details fetch SuccessFully..!",
+        length: providers.length,
+        providers,
       });
   } catch (error) {
     next(new HttpError(error.message));
   }
 };
 
-
-
-export default {registerAsProvider};
+export default { registerAsProvider, getProvider };
