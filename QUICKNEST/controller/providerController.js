@@ -15,31 +15,34 @@ const registerAsProvider = async (req, res, next) => {
       return next(new HttpError("User not Found", 404));
     }
 
-    const existingProvider = await Provider.findById(userId);
+    const existingProvider = await Provider.findOne({ userId });
 
-    if (!existingProvider) {
+    if (existingProvider) {
+      user.role = "provider";
+      await user.save();
+
       return next(
         new HttpError("Already provider Registered with this id", 500),
       );
     }
 
-    const { service, experience, documents } = req.body;
+    const { services, experience, documents } = req.body;
 
-    if (!service || Array.isArray(service) || service.length === 0) {
-      return next(new HttpError("Service is Required", 500));
+    if (!services || !Array.isArray(services) || services.length === 0) {
+      return next(new HttpError("Services is Required", 500));
     }
 
     const validService = await Service.find({
-      _id: { $in: Services },
+      _id: { $in: services },
     }).select("_id");
 
-    if (validService.length !== Service.length) {
+    if (validService.length !== services.length) {
       return next(new HttpError("Service are missing"));
     }
 
     const newProvider = new Provider({
       userId,
-      service: validService,
+      services: validService,
       experience,
       documents,
     });
@@ -47,6 +50,8 @@ const registerAsProvider = async (req, res, next) => {
     user.role = "provider";
 
     await newProvider.save();
+
+    await user.save();
 
     res.status(201).json({
       success: true,
@@ -60,7 +65,7 @@ const registerAsProvider = async (req, res, next) => {
 
 const getProvider = async (req, res, next) => {
   try {
-    let { isValid } = req.query
+    let { isValid } = req.query;
 
     let query = {};
 
@@ -70,21 +75,19 @@ const getProvider = async (req, res, next) => {
 
     const providers = await Provider.find(query).populate([
       { path: "userId", select: "name email password" },
-      { path: "serviceId", select: "name" },
+      { path: "services", select: "name" },
     ]);
 
     if (!providers.length) {
       return next(new HttpError("No Provider Data Found..", 404));
     }
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Provider Details fetch SuccessFully..!",
-        length: providers.length,
-        providers,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Provider Details fetch SuccessFully..!",
+      length: providers.length,
+      providers,
+    });
   } catch (error) {
     next(new HttpError(error.message));
   }

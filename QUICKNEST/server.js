@@ -12,15 +12,25 @@ import bookingRouter from "./router/bookingRouter.js"
 
 import providerRouter from "./router/providerRouter.js"
 
+import {rateLimiter} from "./middleware/rateLimit.js"
+import helmet from "helmet";
+import hpp from "hpp";
 
 const app = express();
 
 app.use(express.json());
+app.use(rateLimiter)
+
+app.use(helmet())
+app.use(hpp())
+
+
 
 app.use("/user", UserRouter);
 app.use("/admin", adminRouter);
 app.use("/booking",bookingRouter)
 app.use("/provider",providerRouter)
+
 
 app.get("/", (req, res, next) => {
   res.status(200).json("Hello from Server....!");
@@ -50,7 +60,7 @@ async function startServer() {
       console.log(`Server running on Port ${port}`);
     });
   } catch (error) {
-    throw new Error(error.message);
+    console.log(error.message);
     process.exit(1);
   }
 }

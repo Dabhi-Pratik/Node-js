@@ -6,6 +6,8 @@ import auth from "../middleware/auth.js";
 import checkRole from "../middleware/checkRole.js";
 import uploads from "../middleware/upload.js";
 
+import {authLimit} from "../middleware/rateLimit.js"
+
 const router = express.Router();
 
 router.post(
@@ -14,10 +16,11 @@ router.post(
   uploads.single("profilePic"),
   UserController.add,
 );
-router.get("/login", UserController.login);
-router.get("/authLogin", auth, UserController.authLogin);
-router.post("/logOut", auth, UserController.logOut);
+router.get("/login",authLimit, UserController.login);
+router.get("/authLogin", auth,authLimit, UserController.authLogin);
+router.post("/logOut", auth, authLimit,UserController.logOut);
 router.post("/logOutAll", auth, UserController.logOutAll);
+
 
 router.patch(
   "/update",

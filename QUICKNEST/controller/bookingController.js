@@ -2,6 +2,8 @@ import HttpError from "../middleware/HttpError.js";
 import Booking from "../model/Booking.js";
 import Service from "../model/service.js";
 
+import sendWhatsAppMessage from "../utils/sendWhatsAppMessage.js";
+
 const createBooking = async (req, res, next) => {
   try {
     const { serviceId, bookingDate, timeSlot, note } = req.body;
@@ -51,8 +53,21 @@ const createBooking = async (req, res, next) => {
 
     await newBooking.save();
 
-    await newBooking.populate("serviceId");
-    await newBooking.populate("userId");
+    // await newBooking.populate("serviceId");
+    // await newBooking.populate("userId");
+
+     await newBooking.populate([
+      {
+        path: "serviceId",
+        select: "name price duration",
+      },
+      {
+        path: "userId",
+        select: "name email phone",
+      },
+    ]);
+
+    await sendWhatsAppMessage(newBooking.userId.phone,"Booking has Created Successfully...!")
 
     res.status(201).json({
       success: true,

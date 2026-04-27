@@ -113,13 +113,40 @@ const logOutAll = async (req, res, next) => {
 
 const allUser = async (req, res, next) => {
   try {
-    const users = await User.find({});
+    const { role, limit, skip, sortBy } = req.query;
 
-    if (users.length === 0) {
-      return next(new HttpError("No User Data Found....!"));
+    let sortByValue = {};
+    let query = {};
+
+    // ✅ filter
+    if (role) {
+      query.role = role;
     }
 
-    res.status(200).json({ success: true, message: "All users are", users });
+    // ✅ FIXED CONDITION
+    if (sortBy) {
+      const [field, order] = sortBy.split(":");
+      sortByValue[field] = order === "desc" ? -1 : 1;
+    } else {
+      sortByValue = { createdAt: -1 }; // optional default
+    }
+
+    const users = await User.find(query)
+      .limit(parseInt(limit) || 5)
+      .skip(parseInt(skip) || 0)
+      .sort(sortByValue);
+
+    if (!users.length) {
+      return next(new HttpError("No User Data Found....!", 404));
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "All users are",
+      length: users.length,
+      users,
+    });
+
   } catch (error) {
     next(new HttpError(error.message));
   }
@@ -212,6 +239,8 @@ const deleteUser = async (req, res, next) => {
     next(new HttpError(error.message));
   }
 };
+
+
 
 export default {
   add,

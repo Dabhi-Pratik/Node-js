@@ -6,10 +6,10 @@ const providerSchema = new mongoose.Schema({
     ref: "user",
     required: true,
   },
-  service: [
+  services: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "service",
+      ref: "Service",
     },
   ],
   experience: {
