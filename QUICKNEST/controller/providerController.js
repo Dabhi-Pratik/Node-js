@@ -4,6 +4,7 @@ import User from "../model/UserModel.js";
 import Service from "../model/service.js";
 
 import services from "../services/emailTemplet.js";
+import Booking from "../model/Booking.js";
 
 const registerAsProvider = async (req, res, next) => {
   try {
@@ -93,4 +94,33 @@ const getProvider = async (req, res, next) => {
   }
 };
 
-export default { registerAsProvider, getProvider };
+const getProviderBooking = async (req, res, next) => {
+  try {
+    const userId = req.params.id || req.User._id;
+
+    const user = await Provider.findById(userId);
+
+    if (!user) {
+      return next(new HttpError("User not Founded..!"));
+    }
+
+    const bookings = await Booking.find({ ProviderId: User._id });
+
+    if (!bookings || bookings.length === 0) {
+      return next(new HttpError("No Booking Data Founded...!"));
+    }
+
+    if (bookings[0].ProviderId.toString() !== req.User._id) {
+      return next(
+        new HttpError("You are not allowed to see this Booking", 400),
+      );
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: "Booking fetched Successfully..!" });
+  } catch (error) {
+    next(new HttpError(error.message, 500));
+  }
+};
+export default { registerAsProvider, getProvider, getProviderBooking };

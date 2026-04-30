@@ -1,4 +1,6 @@
 import mongoose from "mongoose";
+import Provider from "./provider.js";
+
 
 const bookingSchema = new mongoose.Schema({
   userId: {
@@ -10,6 +12,11 @@ const bookingSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     required: true,
     ref: "Service",
+  },
+  ProviderId:{
+    type: mongoose.Schema.Types.ObjectId,
+    ref:"Provider",
+    required:true
   },
   bookingDate: {
     type: Date,
