@@ -1,14 +1,157 @@
+import redisClient from "../config/redis.js";
 import HttpError from "../middleware/HttpError.js";
 import Booking from "../model/Booking.js";
+import Provider from "../model/provider.js";
 import Service from "../model/service.js";
 
 import sendWhatsAppMessage from "../utils/sendWhatsAppMessage.js";
 
-const createBooking = async (req, res, next) => {
-  try {
-    const { serviceId, bookingDate, timeSlot, note } = req.body;
+// const createBooking = async (req, res, next) => {
+//   try {
+//     const { serviceId, bookingDate, timeSlot, note } = req.body;
 
-    const userId = req.user._id;
+//     const userId = req.user._id;
+
+//     const service = await Service.findById(serviceId);
+//     if (!service) {
+//       return next(new HttpError("Service not Founded", 404));
+//     }
+
+//     if (!service.isActive) {
+//       return next(
+//         new HttpError(
+//           "Service is currently not active please try again some time",
+//           400,
+//         ),
+//       );
+//     }
+
+//     const startOfDate = new Date(bookingDate);
+//     startOfDate.setHours(0, 0, 0, 0);
+
+//     const endOfDate = new Date(bookingDate);
+//     endOfDate.setHours(23, 59, 59, 999);
+
+//     const existingBooking = await Booking.findOne({
+//       serviceId,
+//       bookingDate: { $gte: startOfDate, $lt: endOfDate },
+//       status: { $in: ["pending", "confirm"] },
+//     });
+
+//     if (existingBooking) {
+//       return next(
+//         new HttpError("Service Already booked for this time slot", 409),
+//       );
+//     }
+
+//     const newBooking = new Booking({
+//       userId,
+//       serviceId,
+//       bookingDate: new Date(bookingDate),
+//       timeSlot,
+//       note,
+//       totalPrice: service.price,
+//     });
+
+//     await newBooking.save();
+
+//     // await newBooking.populate("serviceId");
+//     // await newBooking.populate("userId");
+
+//      await newBooking.populate([
+//       {
+//         path: "serviceId",
+//         select: "name price duration",
+//       },
+//       {
+//         path: "userId",
+//         select: "name email phone",
+//       },
+//     ]);
+
+//     await sendWhatsAppMessage(newBooking.userId.phone,"Booking has Created Successfully...!")
+
+//     res.status(201).json({
+//       success: true,
+//       message: "Booking created successfully",
+//       booking: newBooking,
+//     });
+//   } catch (error) {
+//     next(new HttpError(error.message, 500));
+//   }
+// };
+
+const createBooking = async (req, res, next) => {
+  const { serviceId, bookingDate, timeSlot, note, providerId } = req.body;
+
+  const lockKey = `bookings:${serviceId}:${bookingDate}:${timeSlot}`;
+
+  const userId = req.user._id;
+
+  const lockAcquired = false;
+
+  try {
+    if (!serviceId || !bookingDate || !timeSlot || !note || !providerId) {
+      return next(new HttpError("Some Necessary field are Missing"));
+    }
+
+    // Date Validation
+
+    const today = new Date();
+
+    today.setHours(0, 0, 0, 0);
+
+    const selectedDate = new Date(bookingDate);
+
+    selectedDate.setHours(0, 0, 0, 0);
+
+    const maxDate = new Date(today);
+
+    maxDate.setDate(maxDate.getDate() + 7);
+
+    if (selectedDate < today) {
+      return next(new HttpError("can't Create booking for Past days", 400));
+    }
+
+    if (selectedDate > max) {
+      return next(
+        new HttpError("Advance Booking can be Book upto 7 day Only...!", 400),
+      );
+    }
+
+    // Time Validation
+
+    const now = new Date();
+
+    if (selectedDate.getDate() === bookingDate.getTime()) {
+      const [startTime] = timeSlot("-");
+
+      const [hours, minutes] = startTime.trim().split(":").map(Number);
+
+      if (isNaN(hours) || isNaN(minutes)) {
+        return next(new HttpError("Invalid time slots", 400));
+      }
+
+      const slotDateAndTime = new Date(selectedDate);
+      slotDateAndTime.setHours(hours, minutes, 0, 0);
+
+      if (slotDateAndTime < now) {
+        return next(new HttpError("Can't Book Past Hours "));
+      }
+    }
+
+    const lock = await redisClient.set(lockKey, userId.toString(), {
+      NX: true,
+      EX: 10,
+    });
+
+    if (!lock) {
+      return next(new HttpError("Already Time Slot is Booked...!", 409));
+    }
+
+    lockAcquired = true;
+
+    //Service Validation
 
     const service = await Service.findById(serviceId);
     if (!service) {
@@ -24,6 +167,12 @@ const createBooking = async (req, res, next) => {
       );
     }
 
+    const provider = await Provider.findById(providerId);
+
+    if (!provider) {
+      return next(new HttpError("Provider Not Founded..!"));
+    }
+
     const startOfDate = new Date(bookingDate);
     startOfDate.setHours(0, 0, 0, 0);
 
@@ -32,6 +181,7 @@ const createBooking = async (req, res, next) => {
 
     const existingBooking = await Booking.findOne({
       serviceId,
+      timeSlot,
       bookingDate: { $gte: startOfDate, $lt: endOfDate },
       status: { $in: ["pending", "confirm"] },
     });
@@ -45,6 +195,7 @@ const createBooking = async (req, res, next) => {
     const newBooking = new Booking({
       userId,
       serviceId,
+      providerId,
       bookingDate: new Date(bookingDate),
       timeSlot,
       note,
@@ -56,7 +207,7 @@ const createBooking = async (req, res, next) => {
     // await newBooking.populate("serviceId");
     // await newBooking.populate("userId");
 
-     await newBooking.populate([
+    await newBooking.populate([
       {
         path: "serviceId",
         select: "name price duration",
@@ -64,10 +215,16 @@ const createBooking = async (req, res, next) => {
       {
         path: "userId",
         select: "name email phone",
-      },
+      },{
+        path:"providerId",
+        select:"name"
+      }
     ]);
 
-    await sendWhatsAppMessage(newBooking.userId.phone,"Booking has Created Successfully...!")
+    await sendWhatsAppMessage(
+      newBooking.userId.phone,
+      "Booking has Created Successfully...!",
+    );
 
     res.status(201).json({
       success: true,
@@ -75,7 +232,12 @@ const createBooking = async (req, res, next) => {
       booking: newBooking,
     });
   } catch (error) {
-    next(new HttpError(error.message, 500));
+    next(new HttpError(error.message))
+  }
+  finally{
+    if(lockAcquired){
+     await redisClient.del(lockKey)
+    }
   }
 };
 
