@@ -88,7 +88,7 @@ const createBooking = async (req, res, next) => {
 
   const userId = req.user._id;
 
-  const lockAcquired = false;
+  let lockAcquired = false;
 
   try {
     if (!serviceId || !bookingDate || !timeSlot || !note || !providerId) {
@@ -113,7 +113,7 @@ const createBooking = async (req, res, next) => {
       return next(new HttpError("can't Create booking for Past days", 400));
     }
 
-    if (selectedDate > max) {
+    if (selectedDate > maxDate) {
       return next(
         new HttpError("Advance Booking can be Book upto 7 day Only...!", 400),
       );
@@ -123,8 +123,8 @@ const createBooking = async (req, res, next) => {
 
     const now = new Date();
 
-    if (selectedDate.getDate() === bookingDate.getTime()) {
-      const [startTime] = timeSlot("-");
+    if (selectedDate.toDateString() === today.toDateString()) {
+      const [startTime] = timeSlot.split("-");
 
       const [hours, minutes] = startTime.trim().split(":").map(Number);
 
@@ -215,10 +215,11 @@ const createBooking = async (req, res, next) => {
       {
         path: "userId",
         select: "name email phone",
-      },{
-        path:"providerId",
-        select:"name"
-      }
+      },
+      {
+        path: "providerId",
+        select: "name",
+      },
     ]);
 
     await sendWhatsAppMessage(
@@ -232,11 +233,10 @@ const createBooking = async (req, res, next) => {
       booking: newBooking,
     });
   } catch (error) {
-    next(new HttpError(error.message))
-  }
-  finally{
-    if(lockAcquired){
-     await redisClient.del(lockKey)
+    next(new HttpError(error.message));
+  } finally {
+    if (lockAcquired) {
+      await redisClient.del(lockKey);
     }
   }
 };

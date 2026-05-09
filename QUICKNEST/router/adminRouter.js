@@ -11,6 +11,8 @@ import categoryController from "../controller/categoryController.js";
 import addService from "../controller/serviceController.js";
 import categorySchema from "../validation/categorySchema.js";
 
+import adminController from "../controller/adminController.js";
+
 const router = express.Router();
 
 router.patch(
@@ -67,5 +69,8 @@ router.post(
   checkRole("admin", "super_admin"),
   addService,
 )
+
+
+router.get("/dashboardStatics",auth,checkRole("admin","super_admin"),adminController.dashBoardStatics)
 
 export default router
