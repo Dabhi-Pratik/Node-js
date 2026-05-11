@@ -3,7 +3,13 @@ import HttpError from "../middleware/HttpError.js";
 import cloudinary from "../config/cloudinary.js";
 
 import sendMail from "../utils/sendEmail.js";
-import generateEmailTemplate from "../services/emailTemplet.js";
+import {
+  generateEmailTemplate,
+  generateResetPasswordTemplate,
+} from "../services/emailTemplet.js";
+
+import crypto from "crypto";
+import sendEmail from "../utils/sendEmail.js";
 
 const add = async (req, res, next) => {
   try {
@@ -146,7 +152,6 @@ const allUser = async (req, res, next) => {
       length: users.length,
       users,
     });
-
   } catch (error) {
     next(new HttpError(error.message));
   }
@@ -240,7 +245,45 @@ const deleteUser = async (req, res, next) => {
   }
 };
 
+const forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
 
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return next(new HttpError("User Not Found...!", 404));
+    }
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExPiry = new Date() + 15 * 60 * 1000;
+
+    await user.save();
+
+    const resetLink = `localhost:5000/user/reset-password/${resetToken}`;
+
+    await sendEmail({
+      to: user.email,
+      subject: "Password Reset Request",
+      html: generateResetPasswordTemplate(user.name, resetLink),
+    });
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: "Password Resent Link Sent SuccessFully...!",resetLink
+      });
+  } catch (error) {
+    next(new HttpError(error.message))
+  }
+};
 
 export default {
   add,
@@ -251,4 +294,5 @@ export default {
   allUser,
   update,
   deleteUser,
+  forgotPassword,
 };

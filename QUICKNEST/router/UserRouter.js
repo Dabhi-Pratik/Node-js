@@ -31,4 +31,6 @@ router.patch(
 
 router.delete("/delete", auth, UserController.deleteUser);
 
+router.post("/forgot-password",UserController.forgotPassword)
+
 export default router;
