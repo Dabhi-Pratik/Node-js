@@ -27,7 +27,11 @@ const registerAsProvider = async (req, res, next) => {
       );
     }
 
-    const { services, experience, documents } = req.body;
+    let { services, experience } = req.body;
+
+    if (typeof services === "string") {
+      services = services.split(",").map((id) => id.replace(/"/g, "").trim());
+    }
 
     if (!services || !Array.isArray(services) || services.length === 0) {
       return next(new HttpError("Services is Required", 500));
@@ -45,7 +49,8 @@ const registerAsProvider = async (req, res, next) => {
       userId,
       services: validService,
       experience,
-      documents,
+      documents: req.files.map((file) => file.path),
+      document_cloudinary_id:req.files?.[0]?.filename
     });
 
     user.role = "provider";

@@ -22,6 +22,10 @@ const providerSchema = new mongoose.Schema({
       required: true,
     },
   ],
+  document_cloudinary_id: {
+    type: String,
+    required: true,
+  },
   isValid: {
     type: Boolean,
     default: false,
@@ -30,4 +34,4 @@ const providerSchema = new mongoose.Schema({
 
 const Provider = mongoose.model("Provider", providerSchema);
 
-export default Provider
+export default Provider;
