@@ -32,4 +32,6 @@ router.delete("/delete", auth, UserController.deleteUser);
 
 router.post("/forgot-password", UserController.forgotPassword);
 
+router.post("/reset-password/:token",UserController.resetPassword)
+
 export default router;

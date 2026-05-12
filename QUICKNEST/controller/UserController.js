@@ -274,7 +274,7 @@ const forgotPassword = async (req, res, next) => {
       .digest("hex");
 
     user.resetPasswordToken = hashedToken;
-    user.resetPasswordExPiry = new Date() + 15 * 60 * 1000;
+    user.resetPasswordExPiry =  Date.now() + 15 * 60 * 1000;
 
     await user.save();
 
@@ -295,6 +295,41 @@ const forgotPassword = async (req, res, next) => {
   }
 };
 
+const resetPassword = async (req, res, next) => {
+  try {
+    const { token } = req.params;
+
+    const { newPassword, confirmPassword } = req.body;
+
+    if (newPassword !== confirmPassword) {
+      return next(new HttpError("Password is not Matched", 404));
+    }
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExPiry: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return next(
+        new HttpError("Password or Token is expired please try again...!"),
+      );
+    }
+
+    user.password = confirmPassword;
+    user.resetPasswordToken = null;
+    user.resetPasswordExPiry = null;
+
+    await user.save();
+
+    res
+      .status(200)
+      .json({ success: true, message: "Password Updated Successfully....!" });
+  } catch (error) {}
+};
+
 export default {
   add,
   login,
@@ -305,4 +340,5 @@ export default {
   update,
   deleteUser,
   forgotPassword,
+  resetPassword,
 };
