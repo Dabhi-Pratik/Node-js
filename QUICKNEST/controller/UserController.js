@@ -11,6 +11,8 @@ import {
 import crypto from "crypto";
 import sendEmail from "../utils/sendEmail.js";
 
+import auditLogger from "../utils/auditLog.js";
+
 const add = async (req, res, next) => {
   try {
     const { name, email, password, phone, role } = req.body;
@@ -236,6 +238,15 @@ const deleteUser = async (req, res, next) => {
 
     await User.findByIdAndDelete(targetedUser);
 
+    await auditLogger({
+      action: "USER_DELETE",
+      performedBy: req.user._id,
+      module: user.role,
+      targetedId: user._id,
+      Id: req.ip,
+      userAgent: req.get("User_Agent"),
+    });
+
     res.status(200).json({
       success: true,
       message: "User Deleted Successfully...",
@@ -274,14 +285,13 @@ const forgotPassword = async (req, res, next) => {
       subject: "Password Reset Request",
       html: generateResetPasswordTemplate(user.name, resetLink),
     });
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Password Resent Link Sent SuccessFully...!",resetLink
-      });
+    res.status(200).json({
+      success: true,
+      message: "Password Resent Link Sent SuccessFully...!",
+      resetLink,
+    });
   } catch (error) {
-    next(new HttpError(error.message))
+    next(new HttpError(error.message));
   }
 };
 
