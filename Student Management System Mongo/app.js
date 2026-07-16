@@ -1,13 +1,18 @@
+import dotenv from "dotenv"
+dotenv.config({path:"./.env"});
 import express from "express"
 import connectDB from "./db/mongoose.js";
 import HttpError from "./midware/Httperror.js";
-import StudentRoute from "./routes/studentRoutes.js"
+import StudentRoute from "./routes/studentRoutes.js";
+
+import cors from "cors";
 
 const app = express();
-const port = 5000;
+const port = process.env.PORT||5000;
 
 app.use(express.json());
 
+app.use(cors());
 app.get("/", (req, res) => {
     res.status(200).json("Hello from Server")
 })
